@@ -4,8 +4,8 @@
       "type": "eventHubTrigger",
       "name": "IoTHubMessages",
       "direction": "in",
-      "eventHubName": "samples-workitems",
-      "connection": "AzureWebJobsStorage",
+      "eventHubName": "IOT_HUB_EVENT_HUB_NAME",
+      "connection": "IOT_HUB_CONNECTION",
       "cardinality": "many",
       "consumerGroup": "$Default"
     }
