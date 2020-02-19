@@ -1,20 +1,20 @@
 const fieldsFunctions = {
-    "owner": (x => x),
-    "name": (x => x),
-    "timestamp": parseInt,
-    "count": parseInt,
-    "tempLPS": parseFloat,
-    "tempLSM": parseFloat,
-    "tempDHT": parseFloat,
-    "pressure": parseFloat,
-    "humidity": parseFloat,
-    "eco2": parseInt,
-    "tvoc": parseInt,
-    "devs": parseInt,
-    "bss": parseInt
+    "owner": {name: "owner", fn: x => x},
+    "name": {name: "name", fn: x => x},
+    "timestamp": {name: "timestamp", fn: parseInt},
+    "count": {name: "readingNumber", fn: parseInt},
+    "tempLPS": {name: "temperatureLPS", fn: parseFloat},
+    "tempLSM": {name: "temperatureLSM", fn: parseFloat},
+    "tempDHT": {name: "temperatureDHT", fn: parseFloat},
+    "pressure": {name: "pressureLPS", fn: parseFloat},
+    "humidity": {name: "humidityDHT", fn: parseFloat},
+    "eco2": {name: "eco2", fn: parseInt},
+    "tvoc": {name: "tvoc", fn: parseInt},
+    "devs": {name: "wifiDevices", fn: parseInt},
+    "bss": {name: "wifiBaseStations", fn: parseInt}
 };
 
-module.exports = (context, IoTHubMessages) => {
+module.exports = async (context, IoTHubMessages) => {
     let dbDocuments = []
 
     IoTHubMessages.forEach((message, i) => {
@@ -32,14 +32,14 @@ module.exports = (context, IoTHubMessages) => {
         rows.forEach(row => {
             let o = {owner: owner, name: name};
             row.split(",").map(x => x.trim()).forEach((item, i) => {
-                const field = fields[i];
-                o[field] = fieldsFunctions[field](item);
+                const field = fieldsFunctions[fields[i]];
+                o[field.name] = field.fn(item);
             });
             dbDocuments.push(o);
         });
     });
 
-    context.bindings.documents = JSON.stringify(dbDocuments);
-
-    context.done();
+    return {
+        documents: dbDocuments
+    }
 };
