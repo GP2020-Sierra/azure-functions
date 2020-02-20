@@ -40,6 +40,7 @@ module.exports = function (context, IoTHubMessages) {
             if (err) {
                 context.log.error("Failed to run location query")
                 context.log.error(err);
+                context.done();
             } else {
                 context.log.verbose("Ran location query");
             }
@@ -75,6 +76,7 @@ module.exports = function (context, IoTHubMessages) {
             if (err) {
                 context.log.error("Failed to run insert message")
                 context.log.error(err);
+                context.done();
             } else {
                 context.log.info("Ran message query for timestamp " + timestamp)
                 inserted += 1;
@@ -124,6 +126,7 @@ module.exports = function (context, IoTHubMessages) {
     function nextMessage() {
         if (IoTHubMessages.length == 0) {
             context.log.info("Done! inserted " + inserted + " rows")
+            context.done();
             return
         }
 
@@ -155,6 +158,7 @@ module.exports = function (context, IoTHubMessages) {
         if (err) {
             context.log.error("Failed to connect to DB!")
             context.log.error(err);
+            context.done();
         } else {
             context.log.verbose("Connected to DB")
             nextMessage();
