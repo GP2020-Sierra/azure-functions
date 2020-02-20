@@ -22,7 +22,7 @@ VALUES (@locationID, dateadd(S, @timestamp, '1970-01-01'), @readingNumber, @temp
 
 const DATA_FIELDS = {
     "timestamp": { name: "timestamp", fn: parseInt, type: TYPES.Int, min: 1577836800, max: Infinity}, // 2020+
-    "count": { name: "readingNumber", fn: parseInt, type: TYPES.Int, min: 0, max: Infinity},
+    "count": { name: "readingNumber", fn: parseInt, type: TYPES.Int, min: 20, max: Infinity}, // DISCARD FIRST FEW READINGS FROM EACH SENSOR
     "tempLPS": { name: "temperatureLPS", fn: parseFloat, type: TYPES.Real, min: 5, max: 35 },
     "tempLSM": { name: "temperatureLSM", fn: parseFloat, type: TYPES.Real, min: 5, max: 35 },
     "tempDHT": { name: "temperatureDHT", fn: parseFloat, type: TYPES.Real, min: 5, max: 35 },
@@ -90,7 +90,7 @@ module.exports = function (context, IoTHubMessages) {
             const field = DATA_FIELDS[fields[i]];
             if (field.name == "timestamp") timestamp = item;
             const value = field.fn(item);
-            if (value > max || value < min) {
+            if (value > field.max || value < field.min) {
                 error = true;
                 context.err.log("Invalid entry - " + field.name + ": " + value);
             } else {
