@@ -85,7 +85,7 @@ module.exports = function (context, IoTHubMessages) {
         request.addParameter('locationID', TYPES.Int, locID);
 
 
-        var error = False;
+        var error = false;
         row.split(",").map(x => x.trim()).forEach((item, i) => {
             const field = DATA_FIELDS[fields[i]];
             if (field.name == "timestamp") timestamp = item;
