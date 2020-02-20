@@ -92,7 +92,7 @@ module.exports = function (context, IoTHubMessages) {
             const value = field.fn(item);
             if (value > field.max || value < field.min) {
                 error = true;
-                context.err.log("Invalid entry - " + field.name + ": " + value);
+                context.log.error("Invalid entry - " + field.name + ": " + value);
             } else {
                 request.addParameter(field.name, field.type, value)
             }
@@ -103,7 +103,7 @@ module.exports = function (context, IoTHubMessages) {
         });
 
         if (error) {
-            context.err.log("Skipping entry")
+            context.log.error("Skipping entry")
             processRow(rows, fields, locID);
         } else {
             connection.execSql(request);
