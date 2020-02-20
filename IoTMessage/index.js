@@ -21,17 +21,17 @@ VALUES (@locationID, dateadd(S, @timestamp, '1970-01-01'), @readingNumber, @temp
 `
 
 const DATA_FIELDS = {
-    "timestamp": { name: "timestamp", fn: parseInt, type: TYPES.Int },
-    "count": { name: "readingNumber", fn: parseInt, type: TYPES.Int },
-    "tempLPS": { name: "temperatureLPS", fn: parseFloat, type: TYPES.Real },
-    "tempLSM": { name: "temperatureLSM", fn: parseFloat, type: TYPES.Real },
-    "tempDHT": { name: "temperatureDHT", fn: parseFloat, type: TYPES.Real },
-    "pressure": { name: "pressureLPS", fn: parseFloat, type: TYPES.Real },
-    "humidity": { name: "humidityDHT", fn: parseFloat, type: TYPES.Real },
-    "eco2": { name: "eco2", fn: parseInt, type: TYPES.SmallInt },
-    "tvoc": { name: "tvoc", fn: parseInt, type: TYPES.SmallInt },
-    "devs": { name: "wifiDevices", fn: parseInt, type: TYPES.SmallInt },
-    "bss": { name: "wifiBaseStations", fn: parseInt, type: TYPES.SmallInt }
+    "timestamp": { name: "timestamp", fn: parseInt, type: TYPES.Int, min: 1577836800, max: Infinity}, // 2020+
+    "count": { name: "readingNumber", fn: parseInt, type: TYPES.Int, min: 0, max: Infinity},
+    "tempLPS": { name: "temperatureLPS", fn: parseFloat, type: TYPES.Real, min: 5, max: 35 },
+    "tempLSM": { name: "temperatureLSM", fn: parseFloat, type: TYPES.Real, min: 5, max: 35 },
+    "tempDHT": { name: "temperatureDHT", fn: parseFloat, type: TYPES.Real, min: 5, max: 35 },
+    "pressure": { name: "pressureLPS", fn: parseFloat, type: TYPES.Real, min: 850, max: 1100 },
+    "humidity": { name: "humidityDHT", fn: parseFloat, type: TYPES.Real, min: 0, max: 100 },
+    "eco2": { name: "eco2", fn: parseInt, type: TYPES.SmallInt, min: 400, max: 8192 }, // sensor returns 0 to 8192
+    "tvoc": { name: "tvoc", fn: parseInt, type: TYPES.SmallInt, min: 0, max: 1200 }, // sensor returns from 0 to 1187
+    "devs": { name: "wifiDevices", fn: parseInt, type: TYPES.SmallInt, min: 0, max: 1000 },
+    "bss": { name: "wifiBaseStations", fn: parseInt, type: TYPES.SmallInt, min: 0, max: 1000 }
 };
 
 module.exports = function (context, IoTHubMessages) {
@@ -84,17 +84,30 @@ module.exports = function (context, IoTHubMessages) {
         });
         request.addParameter('locationID', TYPES.Int, locID);
 
+
+        var error = False;
         row.split(",").map(x => x.trim()).forEach((item, i) => {
             const field = DATA_FIELDS[fields[i]];
             if (field.name == "timestamp") timestamp = item;
-            request.addParameter(field.name, field.type, field.fn(item))
+            const value = field.fn(item);
+            if (value > max || value < min) {
+                error = true;
+                context.err.log("Invalid entry - " + field.name + ": " + value);
+            } else {
+                request.addParameter(field.name, field.type, value)
+            }
         });
 
         request.on('requestCompleted', function() {
             processRow(rows, fields, locID);
         });
 
-        connection.execSql(request);
+        if (error) {
+            context.err.log("Skipping entry")
+            processRow(rows, fields, locID);
+        } else {
+            connection.execSql(request);
+        }
     }
 
     function processMessage(message, i) {
