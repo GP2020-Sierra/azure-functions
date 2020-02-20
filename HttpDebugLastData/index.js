@@ -2,16 +2,14 @@ var Connection = require('tedious').Connection;
 var Request = require('tedious').Request;
 var TYPES = require('tedious').TYPES;
 
-const QUERY = `
-SELECT TOP 1000 dateadd(mi, datediff(mi,0, timestamp) / @perMinutes * @perMinutes, 0) as timestamp, AVG(temperatureDHT) as temperature, AVG(pressureLPS) as pressure, AVG(humidityDHT) as humidity, AVG(eco2) as co2, AVG(wifiDevices) as devices, COUNT(timestamp) as '_count'
-FROM [iot].[messages] m
-INNER JOIN [iot].[locations] l
-ON m.locationID = l.id and l.nameID = @location
-GROUP BY dateadd(mi, datediff(mi,0, timestamp) / @perMinutes * @perMinutes, 0)
-ORDER BY timestamp DESC`
+const QUERY = `SELECT l.name as location, l.owner as devOwner, MAX(m.timestamp) as last_data
+FROM [iot].[locations] l
+LEFT JOIN [iot].[messages] m
+ON l.id = m.locationID
+GROUP BY l.name, l.owner;`
 
 module.exports = function (context, req) {
-    context.log('HTTP Get Data');
+    context.log('HTTP Debug Last Message');
 
     // connect to DB
     const config = {
@@ -45,7 +43,7 @@ module.exports = function (context, req) {
             
             var request = new Request(QUERY, (err) => {
                 if (err) {
-                    context.log.error("Failed to run data query")
+                    context.log.error("Failed to run debug query")
                     context.log.error(err);
                     context.res = {
                         status: 500,
@@ -53,13 +51,9 @@ module.exports = function (context, req) {
                     };
                     context.done();
                 } else {
-                    context.log.verbose("Ran data query");
+                    context.log.verbose("Ran debug query");
                 }
             });
-            request.addParameter("location", TYPES.NVarChar, context.bindingData.locationID);
-            request.addParameter("perMinutes", TYPES.Int, req.query.granularity || (req.body && req.body.granularity) || 5)
-            // TODO add start date & end date or length of time fields
-            // TODO allow limiting - e.g. 1 record for twitter bot
     
             let result = [];
     
