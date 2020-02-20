@@ -23,9 +23,9 @@ VALUES (@locationID, dateadd(S, @timestamp, '1970-01-01'), @readingNumber, @temp
 const DATA_FIELDS = {
     "timestamp": { name: "timestamp", fn: parseInt, type: TYPES.Int, min: 1577836800, max: Infinity}, // 2020+
     "count": { name: "readingNumber", fn: parseInt, type: TYPES.Int, min: 20, max: Infinity}, // DISCARD FIRST FEW READINGS FROM EACH SENSOR
-    "tempLPS": { name: "temperatureLPS", fn: parseFloat, type: TYPES.Real, min: 5, max: 35 },
-    "tempLSM": { name: "temperatureLSM", fn: parseFloat, type: TYPES.Real, min: 5, max: 35 },
-    "tempDHT": { name: "temperatureDHT", fn: parseFloat, type: TYPES.Real, min: 5, max: 35 },
+    "tempLPS": { name: "temperatureLPS", fn: parseFloat, type: TYPES.Real, min: 5, max: 40 },
+    "tempLSM": { name: "temperatureLSM", fn: parseFloat, type: TYPES.Real, min: 5, max: 40 },
+    "tempDHT": { name: "temperatureDHT", fn: parseFloat, type: TYPES.Real, min: 5, max: 40 },
     "pressure": { name: "pressureLPS", fn: parseFloat, type: TYPES.Real, min: 850, max: 1100 },
     "humidity": { name: "humidityDHT", fn: parseFloat, type: TYPES.Real, min: 0, max: 100 },
     "eco2": { name: "eco2", fn: parseInt, type: TYPES.SmallInt, min: 400, max: 8192 }, // sensor returns 0 to 8192
