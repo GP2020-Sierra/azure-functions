@@ -10,7 +10,7 @@ With JoinedData AS (
     ON m.locationID = l.id
     GROUP BY l.name, l.nameID, dateadd(mi, datediff(mi,0, m.timestamp), 0)
 ), WithIdx AS (
-    SELECT *, ROW_NUMBER() OVER (PARTITION BY locationName ORDER BY locationName ASC, timestamp DESC) as _idx
+    SELECT *, ROW_NUMBER() OVER (PARTITION BY name ORDER BY name ASC, timestamp DESC) as _idx
     FROM JoinedData
 )
 
