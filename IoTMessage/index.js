@@ -114,6 +114,11 @@ module.exports = function (context, IoTHubMessages) {
         const properties = context.bindingData.propertiesArray[i];
         const owner = properties.owner;
         const name = properties.name;
+        if (owner === undefined || name === undefined || owner.startsWith("$") || name.startsWith("$")) {
+            context.log.error("Device without owner or name!")
+            nextMessage();
+            return
+        }
         const nameID = name.replace(/[ ]/gi, '-').replace(/[^0-9a-z-]/gi, '').toLowerCase();
         context.log.verbose("Message from " + nameID);
 
