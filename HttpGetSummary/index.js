@@ -82,6 +82,7 @@ module.exports = function (context, req) {
 
                 var reading = {}
                 columns.forEach(c => processColumn(c, reading));
+                reading._idx = parseInt(reading._idx);
                 locDetails.data.push(reading);
             });
     
