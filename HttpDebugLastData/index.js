@@ -2,7 +2,7 @@ var Connection = require('tedious').Connection;
 var Request = require('tedious').Request;
 var TYPES = require('tedious').TYPES;
 
-const QUERY = `SELECT l.name as location, l.owner as devOwner, MAX(m.timestamp) as last_data
+const QUERY = `SELECT l.name as location, l.owner as devOwner, MAX(m.timestamp) as lastData
 FROM [iot].[locations] l
 LEFT JOIN [iot].[messages] m
 ON l.id = m.locationID

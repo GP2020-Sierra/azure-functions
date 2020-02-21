@@ -4,7 +4,7 @@ var TYPES = require('tedious').TYPES;
 
 const QUERY = `
 With JoinedData AS (
-    SELECT l.name as locationName, l.nameID as locationID, dateadd(mi, datediff(mi,0, m.timestamp), 0) as timestamp, AVG(m.temperatureDHT) as temperature, AVG(m.pressureLPS) as pressure, AVG(m.humidityDHT) as humidity, AVG(m.eco2) as eco2, AVG(m.wifiDevices) as wifiDevices, COUNT(m.timestamp) as '_count'
+    SELECT l.name as name, l.nameID as locationID, dateadd(mi, datediff(mi,0, m.timestamp), 0) as timestamp, AVG(m.temperatureDHT) as temperature, AVG(m.pressureLPS) as pressure, AVG(m.humidityDHT) as humidity, AVG(m.eco2) as eco2, AVG(m.wifiDevices) as wifiDevices, COUNT(m.timestamp) as '_count'
     FROM [iot].[messages] m
     INNER JOIN [iot].[locations] l
     ON m.locationID = l.id

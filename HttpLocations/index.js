@@ -2,7 +2,7 @@ var Connection = require('tedious').Connection;
 var Request = require('tedious').Request;
 var TYPES = require('tedious').TYPES;
 
-const QUERY = `SELECT name, nameID as locationID, id as _id
+const QUERY = `SELECT name, nameID as locationID
 FROM [iot].[locations];`
 
 module.exports = function (context, req) {
