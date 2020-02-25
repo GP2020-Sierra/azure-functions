@@ -1,6 +1,7 @@
 var Connection = require('tedious').Connection;
 var Request = require('tedious').Request;
 var TYPES = require('tedious').TYPES;
+var dbConfig = require('../src/DBFunctions').dbConfig;
 
 const QUERY_LOCATION = `
 BEGIN TRAN
@@ -40,6 +41,7 @@ module.exports = function (context, IoTHubMessages) {
             if (err) {
                 context.log.error("Failed to run location query")
                 context.log.error(err);
+                try { connection.close() } catch (ignored) {}
                 context.done();
             } else {
                 context.log.verbose("Ran location query");
@@ -63,7 +65,7 @@ module.exports = function (context, IoTHubMessages) {
         connection.execSql(request);
     }
 
-    function processRow(rows, fields, locID) {
+    function processMsgDataRow(rows, fields, locID) {
         if (rows.length == 0) {
             // done with message
             nextMessage();
@@ -76,7 +78,8 @@ module.exports = function (context, IoTHubMessages) {
             if (err) {
                 context.log.error("Failed to run insert message")
                 context.log.error(err);
-                context.done();
+                try { connection.close() } catch (ignored) {}
+                context.done(err);
             } else {
                 context.log.info("Ran message query for timestamp " + timestamp)
                 inserted += 1;
@@ -99,12 +102,12 @@ module.exports = function (context, IoTHubMessages) {
         });
 
         request.on('requestCompleted', function() {
-            processRow(rows, fields, locID);
+            processMsgDataRow(rows, fields, locID);
         });
 
         if (error) {
             context.log.error("Skipping entry")
-            processRow(rows, fields, locID);
+            processMsgDataRow(rows, fields, locID);
         } else {
             connection.execSql(request);
         }
@@ -125,25 +128,16 @@ module.exports = function (context, IoTHubMessages) {
         var rows = message.data.trim().split("\n");
         var fields = rows.shift().split(",").map(x => x.trim());
 
-        // hack until wifi data sent to cloud
-        if (!fields.includes("devs")) {
-            fields.push("devs")
-            rows = rows.map(x => x + ",0");
-        }
-        if (!fields.includes("bss")) {
-            fields.push("bss")
-            rows = rows.map(x => x + ",0");
-        }
-
         getLocationID(owner, name, nameID, (locID) => {
             context.log.info("nameID: " + nameID + " locID:" + locID);
-            processRow(rows, fields, locID);
+            processMsgDataRow(rows, fields, locID);
         })
     }
 
     function nextMessage() {
         if (IoTHubMessages.length == 0) {
             context.log.info("Done! inserted " + inserted + " rows")
+            try { connection.close() } catch (ignored) {}
             context.done();
             return
         }
@@ -153,22 +147,7 @@ module.exports = function (context, IoTHubMessages) {
     }
 
     // connect to DB
-    const config = {
-        server: process.env["DATABASE_SERVER"],
-        authentication: {
-            type: "default",
-            options: {
-                userName: process.env["DATABASE_USERNAME"],
-                password: process.env["DATABASE_PASSWORD"],
-            }
-        },
-        options: {
-            database: process.env["DATABASE_NAME"],
-            encrypt: true
-        }
-    };
-
-    var connection = new Connection(config);
+    var connection = new Connection(dbConfig);
     var messageI = 0;
     var inserted = 0;
 
@@ -176,7 +155,7 @@ module.exports = function (context, IoTHubMessages) {
         if (err) {
             context.log.error("Failed to connect to DB!")
             context.log.error(err);
-            context.done();
+            context.done(err);
         } else {
             context.log.verbose("Connected to DB")
             nextMessage();
