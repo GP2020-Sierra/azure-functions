@@ -3,7 +3,8 @@ var Request = require('tedious').Request;
 var TYPES = require('tedious').TYPES;
 
 const QUERY = `SELECT name, nameID as locationID
-FROM [iot].[locations];`
+FROM [iot].[locations]
+WHERE shown = 1;`
 
 module.exports = function (context, req) {
     context.log('HTTP Location');

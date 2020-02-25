@@ -8,6 +8,7 @@ With JoinedData AS (
     FROM [iot].[messages] m
     INNER JOIN [iot].[locations] l
     ON m.locationID = l.id
+    WHERE l.shown = 1
     GROUP BY l.name, l.nameID, datediff(mi,0, m.timestamp)
 ), WithIdx AS (
     SELECT *, ROW_NUMBER() OVER (PARTITION BY name ORDER BY name ASC, timestamp DESC) as _idx
